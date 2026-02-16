@@ -44,9 +44,10 @@ export function LoginPage() {
     <Card className="mx-auto mt-10 max-w-md space-y-4">
       <h2 className="text-xl font-semibold">Accedi a SmokeLess</h2>
       <form className="space-y-3" onSubmit={handleSubmit(onSubmit, (formErrors) => { console.warn('[auth][login] invalid form', formErrors); })}>
-        <Input placeholder="Email" {...register('email')} />
+        <Input placeholder="Email" autoComplete="email" {...register('email')} />
         {errors.email && <p className="text-xs text-red-500">Email non valida</p>}
-        <Input type="password" placeholder="Password" {...register('password')} />
+        <Input type="password" placeholder="Password" autoComplete="current-password" {...register('password')} />
+        {errors.password && <p className="text-xs text-red-500">Password richiesta (minimo 6 caratteri)</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>Login</Button>
       </form>
 
