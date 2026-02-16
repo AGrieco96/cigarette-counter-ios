@@ -26,6 +26,7 @@ export function AppLayout() {
             <Link
               key={tab.href}
               to={tab.href}
+              onClick={() => console.info('[nav] tab click', { to: tab.href, pathname })}
               className={`rounded-lg px-2 py-2 text-center text-sm ${pathname === tab.href ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
             >
               {tab.label}
