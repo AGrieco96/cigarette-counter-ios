@@ -9,17 +9,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
+    console.info('[auth] Starting auth bootstrap');
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.error('[auth] getSession failed', error);
+      }
+
+      const nextUser = data.session?.user ?? null;
+      console.info('[auth] Initial session loaded', {
+        hasSession: Boolean(data.session),
+        userId: nextUser?.id ?? null
+      });
+
+      setUser(nextUser);
       setLoading(false);
     });
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session: Session | null) => {
+    const { data } = supabase.auth.onAuthStateChange((event, session: Session | null) => {
+      console.info('[auth] Auth state changed', {
+        event,
+        hasSession: Boolean(session),
+        userId: session?.user?.id ?? null
+      });
+
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => data.subscription.unsubscribe();
+    return () => {
+      console.info('[auth] Cleaning up auth subscription');
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
