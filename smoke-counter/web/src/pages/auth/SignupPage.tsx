@@ -14,7 +14,12 @@ export function SignupPage() {
 
   const onSubmit = async (values: FormData) => {
     const { error } = await supabase.auth.signUp(values);
-    if (error) return toast.error(error.message);
+    if (error) {
+      if ('status' in error && error.status === 404) {
+        return toast.error('Signup non raggiungibile (404). Controlla VITE_SUPABASE_URL: usa solo https://<project-ref>.supabase.co');
+      }
+      return toast.error(error.message);
+    }
     toast.success('Registrazione completata. Controlla la mail.');
   };
 
