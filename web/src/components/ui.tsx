@@ -1,15 +1,29 @@
 import { ButtonHTMLAttributes, InputHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-export function Button({ className, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+export function Button({ className, type = 'button', onClick, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  const clickHandler: ButtonHTMLAttributes<HTMLButtonElement>['onClick'] = (event) => {
+    console.debug('[ui][button] click', {
+      type,
+      disabled: props.disabled ?? false,
+      className,
+      label: typeof children === 'string' ? children : '[non-text]'
+    });
+    onClick?.(event);
+  };
+
   return (
     <button
+      type={type}
       className={cn(
         'inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-primary-foreground font-medium transition hover:opacity-90 disabled:opacity-60',
         className
       )}
+      onClick={clickHandler}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }
 
