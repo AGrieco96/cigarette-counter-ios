@@ -21,7 +21,7 @@ export function ResetPasswordPage() {
       <h2 className="text-xl font-semibold">Reset password</h2>
       <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
         <Input placeholder="Email" {...register('email')} />
-        <Button className="w-full" disabled={isSubmitting}>Invia link reset</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>Invia link reset</Button>
       </form>
     </Card>
   );
