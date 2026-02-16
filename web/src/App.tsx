@@ -29,6 +29,7 @@ export default function App() {
         <Route path="history" element={<HistoryPage />} />
         <Route path="profile" element={<ProfilePage />} />
       </Route>
+      <Route path="*" element={<Navigate to="/app/today" replace />} />
     </Routes>
   );
 }
