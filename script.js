@@ -1,4 +1,4 @@
-const STORAGE_KEY = "cigaretteCounterData.v2";
+const STORAGE_KEY = "cigaretteCounterData.v3";
 const DB_NAME = "cigaretteCounterDB";
 const DB_STORE = "appState";
 const DB_RECORD_ID = "state";
@@ -9,6 +9,11 @@ const defaultState = {
     packCost: 6,
     packSize: 20,
     dailyGoal: 10,
+  },
+  cloud: {
+    supabaseUrl: "",
+    anonKey: "",
+    profileId: "",
   },
   meta: {
     updatedAt: null,
@@ -25,6 +30,12 @@ const elements = {
   importBackupBtn: document.getElementById("import-backup"),
   backupFileInput: document.getElementById("backup-file"),
   persistenceStatus: document.getElementById("persistence-status"),
+  supabaseUrl: document.getElementById("supabase-url"),
+  supabaseKey: document.getElementById("supabase-key"),
+  profileId: document.getElementById("profile-id"),
+  saveCloudBtn: document.getElementById("save-cloud"),
+  loadCloudBtn: document.getElementById("load-cloud"),
+  cloudStatus: document.getElementById("cloud-status"),
   todayCount: document.getElementById("today-count"),
   totalCount: document.getElementById("total-count"),
   avgWeek: document.getElementById("avg-week"),
@@ -36,12 +47,13 @@ const elements = {
 
 let state = structuredClone(defaultState);
 let persistenceInfo = "Storage locale attivo.";
+let cloudInfo = "Configura Supabase per attivare la sincronizzazione cloud.";
 
 init();
 
 async function init() {
   state = await loadState();
-  hydrateSettingsInputs();
+  hydrateInputs();
   bindEvents();
   render();
 }
@@ -67,9 +79,20 @@ function bindEvents() {
     });
   });
 
+  [elements.supabaseUrl, elements.supabaseKey, elements.profileId].forEach((input) => {
+    input.addEventListener("change", async () => {
+      updateCloudConfigFromInputs();
+      await persist();
+      render();
+    });
+  });
+
   elements.exportBackupBtn.addEventListener("click", exportBackup);
   elements.importBackupBtn.addEventListener("click", () => elements.backupFileInput.click());
   elements.backupFileInput.addEventListener("change", importBackup);
+
+  elements.saveCloudBtn.addEventListener("click", saveToCloud);
+  elements.loadCloudBtn.addEventListener("click", loadFromCloud);
 }
 
 function updateSettingsFromInputs() {
@@ -78,10 +101,21 @@ function updateSettingsFromInputs() {
   state.settings.dailyGoal = Math.max(0, Math.round(toNumber(elements.dailyGoal.value, 10)));
 }
 
-function hydrateSettingsInputs() {
+function updateCloudConfigFromInputs() {
+  state.cloud.supabaseUrl = normalizeUrl(elements.supabaseUrl.value);
+  state.cloud.anonKey = elements.supabaseKey.value.trim();
+  state.cloud.profileId = elements.profileId.value.trim();
+  cloudInfo = "Configurazione cloud aggiornata localmente.";
+}
+
+function hydrateInputs() {
   elements.packCost.value = state.settings.packCost;
   elements.packSize.value = state.settings.packSize;
   elements.dailyGoal.value = state.settings.dailyGoal;
+
+  elements.supabaseUrl.value = state.cloud.supabaseUrl;
+  elements.supabaseKey.value = state.cloud.anonKey;
+  elements.profileId.value = state.cloud.profileId;
 }
 
 function render() {
@@ -127,6 +161,7 @@ function render() {
   elements.goalDays.textContent = String(goalDays);
 
   elements.persistenceStatus.textContent = buildPersistenceStatus();
+  elements.cloudStatus.textContent = cloudInfo;
 
   renderRecentEntries(entries);
 }
@@ -155,7 +190,7 @@ function renderRecentEntries(entries) {
 async function loadState() {
   const fromIndexedDB = await readFromIndexedDB();
   if (fromIndexedDB) {
-    persistenceInfo = "Dati ripristinati da IndexedDB + localStorage (ridondanza attiva).";
+    persistenceInfo = "Dati ripristinati da IndexedDB + localStorage.";
     return sanitizeState(fromIndexedDB);
   }
 
@@ -193,7 +228,7 @@ async function persist() {
 
 function buildPersistenceStatus() {
   const updatedAt = state?.meta?.updatedAt;
-  if (!updatedAt) return `${persistenceInfo} Ultimo backup: mai.`;
+  if (!updatedAt) return `${persistenceInfo} Ultimo salvataggio: mai.`;
 
   return `${persistenceInfo} Ultimo salvataggio: ${new Intl.DateTimeFormat("it-IT", {
     dateStyle: "short",
@@ -205,7 +240,7 @@ function exportBackup() {
   const payload = {
     exportedAt: new Date().toISOString(),
     app: "cigarette-counter",
-    version: 1,
+    version: 2,
     data: state,
   };
 
@@ -230,15 +265,120 @@ async function importBackup(event) {
     const parsed = JSON.parse(text);
     const candidate = parsed?.data ?? parsed;
     state = sanitizeState(candidate);
-    hydrateSettingsInputs();
+    hydrateInputs();
     await persist();
+    cloudInfo = "Backup importato con successo.";
     render();
   } catch {
-    persistenceInfo = "Backup non valido: impossibile importare il file selezionato.";
+    cloudInfo = "Backup non valido: impossibile importare il file selezionato.";
     render();
   } finally {
     elements.backupFileInput.value = "";
   }
+}
+
+async function saveToCloud() {
+  updateCloudConfigFromInputs();
+  const config = getCloudConfigOrFail();
+  if (!config) {
+    render();
+    return;
+  }
+
+  try {
+    await pushStateToSupabase(config, state);
+    cloudInfo = "Dati salvati su Supabase con successo.";
+  } catch (error) {
+    cloudInfo = `Errore salvataggio cloud: ${error.message}`;
+  }
+
+  await persist();
+  render();
+}
+
+async function loadFromCloud() {
+  updateCloudConfigFromInputs();
+  const config = getCloudConfigOrFail();
+  if (!config) {
+    render();
+    return;
+  }
+
+  try {
+    const remoteState = await pullStateFromSupabase(config);
+    if (!remoteState) {
+      cloudInfo = "Nessun dato cloud trovato per questo Profilo ID.";
+    } else {
+      state = sanitizeState(remoteState);
+      hydrateInputs();
+      await persist();
+      cloudInfo = "Dati caricati da Supabase con successo.";
+    }
+  } catch (error) {
+    cloudInfo = `Errore caricamento cloud: ${error.message}`;
+  }
+
+  render();
+}
+
+function getCloudConfigOrFail() {
+  const supabaseUrl = normalizeUrl(state.cloud.supabaseUrl);
+  const anonKey = state.cloud.anonKey.trim();
+  const profileId = state.cloud.profileId.trim();
+
+  if (!supabaseUrl || !anonKey || !profileId) {
+    cloudInfo = "Compila URL, Anon Key e Profilo ID per usare il backend gratuito.";
+    return null;
+  }
+
+  return { supabaseUrl, anonKey, profileId };
+}
+
+async function pushStateToSupabase(config, payload) {
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/cigarette_backups?on_conflict=profile_id`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: config.anonKey,
+        Authorization: `Bearer ${config.anonKey}`,
+        Prefer: "resolution=merge-duplicates,return=representation",
+      },
+      body: JSON.stringify([
+        {
+          profile_id: config.profileId,
+          payload,
+          updated_at: new Date().toISOString(),
+        },
+      ]),
+    },
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`HTTP ${response.status} ${text}`);
+  }
+}
+
+async function pullStateFromSupabase(config) {
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/cigarette_backups?profile_id=eq.${encodeURIComponent(config.profileId)}&select=payload&limit=1`,
+    {
+      headers: {
+        apikey: config.anonKey,
+        Authorization: `Bearer ${config.anonKey}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`HTTP ${response.status} ${text}`);
+  }
+
+  const rows = await response.json();
+  return rows[0]?.payload ?? null;
 }
 
 function sanitizeState(raw) {
@@ -251,10 +391,19 @@ function sanitizeState(raw) {
       packSize: Math.max(1, Math.round(toNumber(raw?.settings?.packSize, defaultState.settings.packSize))),
       dailyGoal: Math.max(0, Math.round(toNumber(raw?.settings?.dailyGoal, defaultState.settings.dailyGoal))),
     },
+    cloud: {
+      supabaseUrl: normalizeUrl(raw?.cloud?.supabaseUrl ?? ""),
+      anonKey: typeof raw?.cloud?.anonKey === "string" ? raw.cloud.anonKey : "",
+      profileId: typeof raw?.cloud?.profileId === "string" ? raw.cloud.profileId : "",
+    },
     meta: {
       updatedAt: raw?.meta?.updatedAt ?? null,
     },
   };
+}
+
+function normalizeUrl(value) {
+  return String(value ?? "").trim().replace(/\/$/, "");
 }
 
 function toNumber(value, fallback) {

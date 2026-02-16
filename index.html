@@ -4,23 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contatore Sigarette</title>
-    <meta name="description" content="Contatore sigarette con backup/import dati per evitare perdite." />
+    <meta
+      name="description"
+      content="Contatore sigarette elegante con persistenza locale, backup JSON e sync cloud gratuita tramite Supabase."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="bg-orb orb-1" aria-hidden="true"></div>
+    <div class="bg-orb orb-2" aria-hidden="true"></div>
+    <div class="bg-orb orb-3" aria-hidden="true"></div>
+
     <main class="container">
-      <header>
-        <h1>🚭 Contatore Sigarette</h1>
-        <p>Tieni traccia delle sigarette fumate e osserva i tuoi progressi.</p>
+      <header class="hero card">
+        <div>
+          <h1>🚭 Contatore Sigarette</h1>
+          <p>Tieni traccia delle sigarette, monitora i costi e salva i dati in locale + cloud.</p>
+        </div>
+        <span class="badge">PWA-friendly • iPhone Home</span>
       </header>
 
       <section class="card controls">
-        <h2>Aggiungi fumata</h2>
+        <h2>Registra fumata</h2>
         <div class="actions">
           <button id="add-cigarette" class="btn primary">+ Ho fumato una sigaretta</button>
           <button id="undo-cigarette" class="btn" title="Annulla ultima registrazione">Annulla ultima</button>
         </div>
-        <p class="hint">I dati vengono salvati in doppia persistenza locale (IndexedDB + localStorage).</p>
+        <p class="hint">Persistenza locale ridondante: IndexedDB + localStorage.</p>
       </section>
 
       <section class="card settings">
@@ -41,11 +57,35 @@
         </div>
       </section>
 
-      <section class="card backup">
-        <h2>Backup dati (consigliato su iPhone)</h2>
+      <section class="card cloud">
+        <h2>☁️ Backend gratuito (opzionale)</h2>
         <p class="hint">
-          Per evitare perdita dati, esporta periodicamente un backup `.json` su File/iCloud e reimportalo quando serve.
+          Collegamento a <strong>Supabase Free</strong>: salva/recupera i dati anche dopo reset del telefono.
         </p>
+        <div class="grid">
+          <label>
+            Supabase URL
+            <input id="supabase-url" type="url" placeholder="https://xxxx.supabase.co" />
+          </label>
+          <label>
+            Supabase Anon Key
+            <input id="supabase-key" type="password" placeholder="eyJhbGciOi..." />
+          </label>
+          <label>
+            Profilo ID
+            <input id="profile-id" type="text" placeholder="es. mario-iphone" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="save-cloud" class="btn">Salva su cloud</button>
+          <button id="load-cloud" class="btn">Carica da cloud</button>
+        </div>
+        <p id="cloud-status" class="status"></p>
+      </section>
+
+      <section class="card backup">
+        <h2>Backup manuale</h2>
+        <p class="hint">Esporta JSON su File/iCloud e importalo quando serve.</p>
         <div class="actions">
           <button id="export-backup" class="btn">Esporta backup</button>
           <button id="import-backup" class="btn">Importa backup</button>
@@ -68,11 +108,11 @@
           <p id="avg-week" class="value">0</p>
         </article>
         <article class="card stat">
-          <h3>Stima spesa totale</h3>
+          <h3>Spesa totale</h3>
           <p id="total-cost" class="value">€0,00</p>
         </article>
         <article class="card stat">
-          <h3>Stima spesa mese</h3>
+          <h3>Spesa mese</h3>
           <p id="month-cost" class="value">€0,00</p>
         </article>
         <article class="card stat">
