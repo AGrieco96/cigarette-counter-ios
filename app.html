@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Contatore Sigarette</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-1" aria-hidden="true"></div>
+    <div class="bg-orb orb-2" aria-hidden="true"></div>
+    <div class="bg-orb orb-3" aria-hidden="true"></div>
+
+    <main class="container">
+      <header class="hero card">
+        <div>
+          <h1>🚭 Dashboard</h1>
+          <p>Tieni traccia delle sigarette e sincronizza i dati col backend Supabase.</p>
+        </div>
+        <span class="badge" id="auth-user">Utente</span>
+      </header>
+
+      <section class="card auth">
+        <h2>Sessione</h2>
+        <div class="actions">
+          <button id="sync-btn" class="btn">Sincronizza ora</button>
+          <button id="logout-btn" class="btn">Logout</button>
+        </div>
+        <p id="auth-status" class="status"></p>
+      </section>
+
+      <section class="card controls">
+        <h2>Registra fumata</h2>
+        <div class="actions">
+          <button id="add-cigarette" class="btn primary">+ Ho fumato una sigaretta</button>
+          <button id="undo-cigarette" class="btn" title="Annulla ultima registrazione">Annulla ultima</button>
+        </div>
+      </section>
+
+      <section class="card settings">
+        <h2>Impostazioni</h2>
+        <div class="grid">
+          <label>
+            Costo pacchetto (€)
+            <input id="pack-cost" type="number" min="0" step="0.01" />
+          </label>
+          <label>
+            Sigarette per pacchetto
+            <input id="pack-size" type="number" min="1" step="1" />
+          </label>
+          <label>
+            Obiettivo giornaliero
+            <input id="daily-goal" type="number" min="0" step="1" />
+          </label>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-live="polite">
+        <article class="card stat"><h3>Oggi</h3><p id="today-count" class="value">0</p></article>
+        <article class="card stat"><h3>Totale</h3><p id="total-count" class="value">0</p></article>
+        <article class="card stat"><h3>Media giornaliera (7g)</h3><p id="avg-week" class="value">0</p></article>
+        <article class="card stat"><h3>Spesa totale</h3><p id="total-cost" class="value">€0,00</p></article>
+        <article class="card stat"><h3>Spesa mese</h3><p id="month-cost" class="value">€0,00</p></article>
+        <article class="card stat"><h3>Giorni sotto obiettivo (30g)</h3><p id="goal-days" class="value">0</p></article>
+      </section>
+
+      <section class="card timeline">
+        <h2>Ultime registrazioni</h2>
+        <ul id="recent-list"></ul>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
