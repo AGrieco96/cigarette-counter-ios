@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Contatore Sigarette</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-1" aria-hidden="true"></div>
+    <div class="bg-orb orb-2" aria-hidden="true"></div>
+    <div class="bg-orb orb-3" aria-hidden="true"></div>
+
+    <main class="container auth-page">
+      <section class="card auth-panel">
+        <h1>🚭 Benvenuto</h1>
+        <p class="hint">Accedi o registrati per usare la tua dashboard personale sincronizzata su cloud.</p>
+
+        <div class="grid auth-grid">
+          <label>
+            Email
+            <input id="auth-email" type="email" autocomplete="email" placeholder="nome@dominio.com" />
+          </label>
+          <label>
+            Password
+            <input id="auth-password" type="password" autocomplete="current-password" placeholder="Minimo 8 caratteri" />
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="register-btn" class="btn">Registrati</button>
+          <button id="login-btn" class="btn primary">Accedi</button>
+        </div>
+
+        <p id="auth-status" class="status"></p>
+      </section>
+    </main>
+
+    <script src="login.js" defer></script>
+  </body>
+</html>
