@@ -6,7 +6,7 @@
     <title>Contatore Sigarette</title>
     <meta
       name="description"
-      content="Contatore sigarette elegante con persistenza locale, backup JSON e sync cloud gratuita tramite Supabase."
+      content="Contatore sigarette elegante con persistenza locale, backup JSON e sync cloud gratuita tramite Supabase Auth."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,7 +25,7 @@
       <header class="hero card">
         <div>
           <h1>🚭 Contatore Sigarette</h1>
-          <p>Tieni traccia delle sigarette, monitora i costi e salva i dati in locale + cloud.</p>
+          <p>Tieni traccia delle sigarette, monitora i costi e sincronizza in cloud gratis.</p>
         </div>
         <span class="badge">PWA-friendly • iPhone Home</span>
       </header>
@@ -58,10 +58,8 @@
       </section>
 
       <section class="card cloud">
-        <h2>☁️ Backend gratuito (opzionale)</h2>
-        <p class="hint">
-          Collegamento a <strong>Supabase Free</strong>: salva/recupera i dati anche dopo reset del telefono.
-        </p>
+        <h2>☁️ Cloud gratuito robusto (Supabase + Auth)</h2>
+        <p class="hint">Con login email magic-link i tuoi dati restano recuperabili anche se cambi iPhone.</p>
         <div class="grid">
           <label>
             Supabase URL
@@ -72,14 +70,17 @@
             <input id="supabase-key" type="password" placeholder="eyJhbGciOi..." />
           </label>
           <label>
-            Profilo ID
-            <input id="profile-id" type="text" placeholder="es. mario-iphone" />
+            Email account cloud
+            <input id="cloud-email" type="email" placeholder="nome@dominio.com" />
           </label>
         </div>
         <div class="actions">
-          <button id="save-cloud" class="btn">Salva su cloud</button>
-          <button id="load-cloud" class="btn">Carica da cloud</button>
+          <button id="cloud-login" class="btn">Invia magic link</button>
+          <button id="cloud-sync-up" class="btn">Sync Cloud ↑</button>
+          <button id="cloud-sync-down" class="btn">Sync Cloud ↓</button>
+          <button id="cloud-logout" class="btn">Logout cloud</button>
         </div>
+        <p id="cloud-user" class="status"></p>
         <p id="cloud-status" class="status"></p>
       </section>
 
@@ -95,30 +96,12 @@
       </section>
 
       <section class="stats-grid" aria-live="polite">
-        <article class="card stat">
-          <h3>Oggi</h3>
-          <p id="today-count" class="value">0</p>
-        </article>
-        <article class="card stat">
-          <h3>Totale</h3>
-          <p id="total-count" class="value">0</p>
-        </article>
-        <article class="card stat">
-          <h3>Media giornaliera (7g)</h3>
-          <p id="avg-week" class="value">0</p>
-        </article>
-        <article class="card stat">
-          <h3>Spesa totale</h3>
-          <p id="total-cost" class="value">€0,00</p>
-        </article>
-        <article class="card stat">
-          <h3>Spesa mese</h3>
-          <p id="month-cost" class="value">€0,00</p>
-        </article>
-        <article class="card stat">
-          <h3>Giorni sotto obiettivo (30g)</h3>
-          <p id="goal-days" class="value">0</p>
-        </article>
+        <article class="card stat"><h3>Oggi</h3><p id="today-count" class="value">0</p></article>
+        <article class="card stat"><h3>Totale</h3><p id="total-count" class="value">0</p></article>
+        <article class="card stat"><h3>Media giornaliera (7g)</h3><p id="avg-week" class="value">0</p></article>
+        <article class="card stat"><h3>Spesa totale</h3><p id="total-cost" class="value">€0,00</p></article>
+        <article class="card stat"><h3>Spesa mese</h3><p id="month-cost" class="value">€0,00</p></article>
+        <article class="card stat"><h3>Giorni sotto obiettivo (30g)</h3><p id="goal-days" class="value">0</p></article>
       </section>
 
       <section class="card timeline">
@@ -127,6 +110,7 @@
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js" defer></script>
   </body>
 </html>

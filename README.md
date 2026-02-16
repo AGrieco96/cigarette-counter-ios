@@ -1,70 +1,82 @@
 # Contatore Sigarette Web
 
-Web app statica (HTML/CSS/JS) deployabile su **GitHub Pages** per monitorare:
+Web app statica deployabile su **GitHub Pages**, con:
+- tracking sigarette e statistiche;
+- persistenza locale ridondante (**IndexedDB + localStorage**);
+- backup manuale JSON;
+- cloud gratuito robusto con **Supabase + Auth (magic link email)**.
 
-- sigarette fumate oggi e in totale;
-- media giornaliera (7 giorni);
-- spesa stimata totale e mensile;
-- giorni sotto obiettivo negli ultimi 30 giorni;
-- ultime registrazioni.
+## Cloud gratuito robusto: cosa devi fare manualmente
 
-## Persistenza dati
+Sì, è possibile avere backend gratuito. La soluzione più robusta (free) è Supabase con autenticazione email.
 
-- Salvataggio locale ridondante: **IndexedDB + localStorage**.
-- Backup manuale: **Esporta/Importa JSON**.
+### 1) Crea progetto Supabase (free)
+1. Registrati su https://supabase.com
+2. Crea un nuovo progetto
+3. Copia da `Project Settings -> API`:
+   - `Project URL`
+   - `anon public key`
 
-## Backend gratuito (opzionale): Supabase Free
-
-Sì: puoi collegare un backend gratuito tramite **Supabase Free Tier**.
-
-### 1) Crea progetto Supabase
-- Vai su [supabase.com](https://supabase.com) e crea un progetto gratuito.
-- Recupera da Project Settings:
-  - `Project URL`
-  - `anon public key`
-
-### 2) Crea tabella SQL
+### 2) Crea tabella cloud
 Nel SQL Editor esegui:
 
 ```sql
-create table if not exists public.cigarette_backups (
-  profile_id text primary key,
+create table if not exists public.cigarette_states (
+  user_id uuid primary key references auth.users(id) on delete cascade,
   payload jsonb not null,
   updated_at timestamptz not null default now()
 );
 ```
 
-### 3) Policy minima (demo)
-Per test veloce da app client puoi consentire accesso anonimo alla tabella:
+### 3) Abilita sicurezza RLS (importante)
 
 ```sql
-alter table public.cigarette_backups enable row level security;
+alter table public.cigarette_states enable row level security;
 
-create policy "anon read/write backups"
-on public.cigarette_backups
-for all
-to anon
-using (true)
-with check (true);
+create policy "select own state"
+on public.cigarette_states
+for select
+using (auth.uid() = user_id);
+
+create policy "insert own state"
+on public.cigarette_states
+for insert
+with check (auth.uid() = user_id);
+
+create policy "update own state"
+on public.cigarette_states
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
 ```
 
-> Per uso reale è meglio usare autenticazione Supabase Auth e policy per utente.
+### 4) Configura Auth email
+In Supabase:
+- `Authentication -> Providers -> Email`: enabled.
+- (Consigliato) imposta Site URL al dominio GitHub Pages.
 
-### 4) Configura la web app
-Nella sezione **Backend gratuito (opzionale)** inserisci:
+### 5) Usa l'app
+Nella sezione cloud inserisci:
 - Supabase URL
 - Supabase Anon Key
-- Profilo ID (es. `mario-iphone`)
+- Email
 
-Poi usa:
-- **Salva su cloud**
-- **Carica da cloud**
+Poi:
+1. `Invia magic link`
+2. Apri la mail e conferma login
+3. Usa `Sync Cloud ↑` per salvare
+4. Usa `Sync Cloud ↓` per ripristinare
+
+## Robustezza attuale
+- Doppia persistenza locale (IndexedDB + localStorage)
+- Recupero automatico sessione Supabase
+- Download cloud solo se il dato remoto è più recente del locale
+- Backup JSON manuale di emergenza
 
 ## Avvio locale
-Apri `index.html` nel browser oppure usa un server statico.
+Apri `index.html` nel browser oppure usa server statico (`python3 -m http.server`).
 
-## Deploy su GitHub Pages
-1. Push su GitHub.
-2. Repository → **Settings → Pages**.
-3. Source: `Deploy from a branch`, branch `main`, folder `/ (root)`.
-4. Attendi pubblicazione.
+## Deploy GitHub Pages
+1. Push su GitHub
+2. `Settings -> Pages`
+3. Source: `Deploy from a branch`, branch `main`, folder `/ (root)`
