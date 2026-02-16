@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contatore Sigarette</title>
+    <meta name="description" content="Contatore sigarette con backup/import dati per evitare perdite." />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -19,7 +20,7 @@
           <button id="add-cigarette" class="btn primary">+ Ho fumato una sigaretta</button>
           <button id="undo-cigarette" class="btn" title="Annulla ultima registrazione">Annulla ultima</button>
         </div>
-        <p class="hint">Le registrazioni vengono salvate solo nel browser (localStorage).</p>
+        <p class="hint">I dati vengono salvati in doppia persistenza locale (IndexedDB + localStorage).</p>
       </section>
 
       <section class="card settings">
@@ -38,6 +39,19 @@
             <input id="daily-goal" type="number" min="0" step="1" />
           </label>
         </div>
+      </section>
+
+      <section class="card backup">
+        <h2>Backup dati (consigliato su iPhone)</h2>
+        <p class="hint">
+          Per evitare perdita dati, esporta periodicamente un backup `.json` su File/iCloud e reimportalo quando serve.
+        </p>
+        <div class="actions">
+          <button id="export-backup" class="btn">Esporta backup</button>
+          <button id="import-backup" class="btn">Importa backup</button>
+          <input id="backup-file" type="file" accept="application/json" hidden />
+        </div>
+        <p id="persistence-status" class="status"></p>
       </section>
 
       <section class="stats-grid" aria-live="polite">

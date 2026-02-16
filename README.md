@@ -8,6 +8,16 @@ Applicazione web statica (HTML/CSS/JS) pronta per essere pubblicata su **GitHub 
 - numero di giorni sotto obiettivo negli ultimi 30 giorni;
 - ultime registrazioni con data e ora.
 
+## Persistenza dati (iPhone/Home Screen)
+
+Per ridurre al minimo il rischio di perdita dati:
+
+- la app salva in **doppia persistenza locale**: `IndexedDB` + `localStorage`;
+- puoi usare **Esporta backup** per scaricare un file `.json` (consigliato salvarlo in File/iCloud);
+- puoi usare **Importa backup** per ripristinare tutto in caso di reset del browser/dispositivo.
+
+> Nota: una web app completamente statica, senza backend/account cloud, non può garantire una persistenza "assoluta" al 100% su ogni scenario di pulizia dati del sistema.
+
 ## Avvio locale
 
 Apri `index.html` direttamente nel browser oppure usa un server statico (es. VS Code Live Server).
@@ -21,5 +31,3 @@ Apri `index.html` direttamente nel browser oppure usa un server statico (es. VS 
    - **Branch**: `main` (o il branch desiderato)
    - **Folder**: `/ (root)`
 4. Salva e attendi la pubblicazione.
-
-La web app usa `localStorage`, quindi i dati restano salvati nel browser dell'utente.

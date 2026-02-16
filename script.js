@@ -1,4 +1,7 @@
-const STORAGE_KEY = "cigaretteCounterData.v1";
+const STORAGE_KEY = "cigaretteCounterData.v2";
+const DB_NAME = "cigaretteCounterDB";
+const DB_STORE = "appState";
+const DB_RECORD_ID = "state";
 
 const defaultState = {
   entries: [],
@@ -6,6 +9,9 @@ const defaultState = {
     packCost: 6,
     packSize: 20,
     dailyGoal: 10,
+  },
+  meta: {
+    updatedAt: null,
   },
 };
 
@@ -15,6 +21,10 @@ const elements = {
   packCost: document.getElementById("pack-cost"),
   packSize: document.getElementById("pack-size"),
   dailyGoal: document.getElementById("daily-goal"),
+  exportBackupBtn: document.getElementById("export-backup"),
+  importBackupBtn: document.getElementById("import-backup"),
+  backupFileInput: document.getElementById("backup-file"),
+  persistenceStatus: document.getElementById("persistence-status"),
   todayCount: document.getElementById("today-count"),
   totalCount: document.getElementById("total-count"),
   avgWeek: document.getElementById("avg-week"),
@@ -24,40 +34,48 @@ const elements = {
   recentList: document.getElementById("recent-list"),
 };
 
-let state = loadState();
+let state = structuredClone(defaultState);
+let persistenceInfo = "Storage locale attivo.";
 
 init();
 
-function init() {
+async function init() {
+  state = await loadState();
   hydrateSettingsInputs();
   bindEvents();
   render();
 }
 
 function bindEvents() {
-  elements.addBtn.addEventListener("click", () => {
+  elements.addBtn.addEventListener("click", async () => {
     state.entries.push(new Date().toISOString());
-    persist();
+    await persist();
     render();
   });
 
-  elements.undoBtn.addEventListener("click", () => {
+  elements.undoBtn.addEventListener("click", async () => {
     state.entries.pop();
-    persist();
+    await persist();
     render();
   });
 
   [elements.packCost, elements.packSize, elements.dailyGoal].forEach((input) => {
-    input.addEventListener("change", updateSettingsFromInputs);
+    input.addEventListener("change", async () => {
+      updateSettingsFromInputs();
+      await persist();
+      render();
+    });
   });
+
+  elements.exportBackupBtn.addEventListener("click", exportBackup);
+  elements.importBackupBtn.addEventListener("click", () => elements.backupFileInput.click());
+  elements.backupFileInput.addEventListener("change", importBackup);
 }
 
 function updateSettingsFromInputs() {
-  state.settings.packCost = toNumber(elements.packCost.value, 0);
+  state.settings.packCost = Math.max(0, toNumber(elements.packCost.value, 0));
   state.settings.packSize = Math.max(1, Math.round(toNumber(elements.packSize.value, 20)));
   state.settings.dailyGoal = Math.max(0, Math.round(toNumber(elements.dailyGoal.value, 10)));
-  persist();
-  render();
 }
 
 function hydrateSettingsInputs() {
@@ -79,7 +97,7 @@ function render() {
     day.setDate(now.getDate() - i);
     weekCounts.push(entries.filter((date) => isSameDay(date, day)).length);
   }
-  const avgWeek = weekCounts.reduce((sum, v) => sum + v, 0) / 7;
+  const avgWeek = weekCounts.reduce((sum, value) => sum + value, 0) / 7;
 
   const perCigaretteCost = state.settings.packCost / state.settings.packSize;
   const totalCost = totalCount * perCigaretteCost;
@@ -108,6 +126,8 @@ function render() {
   elements.monthCost.textContent = euro(monthCost);
   elements.goalDays.textContent = String(goalDays);
 
+  elements.persistenceStatus.textContent = buildPersistenceStatus();
+
   renderRecentEntries(entries);
 }
 
@@ -132,27 +152,109 @@ function renderRecentEntries(entries) {
   });
 }
 
-function loadState() {
+async function loadState() {
+  const fromIndexedDB = await readFromIndexedDB();
+  if (fromIndexedDB) {
+    persistenceInfo = "Dati ripristinati da IndexedDB + localStorage (ridondanza attiva).";
+    return sanitizeState(fromIndexedDB);
+  }
+
+  const fromLocalStorage = readFromLocalStorage();
+  if (fromLocalStorage) {
+    persistenceInfo = "Dati ripristinati da localStorage.";
+    return sanitizeState(fromLocalStorage);
+  }
+
+  persistenceInfo = "Nessun dato precedente trovato. Nuovo archivio creato.";
+  return structuredClone(defaultState);
+}
+
+function readFromLocalStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return structuredClone(defaultState);
-
-    const parsed = JSON.parse(raw);
-    return {
-      entries: Array.isArray(parsed.entries) ? parsed.entries : [],
-      settings: {
-        packCost: toNumber(parsed?.settings?.packCost, defaultState.settings.packCost),
-        packSize: Math.max(1, Math.round(toNumber(parsed?.settings?.packSize, defaultState.settings.packSize))),
-        dailyGoal: Math.max(0, Math.round(toNumber(parsed?.settings?.dailyGoal, defaultState.settings.dailyGoal))),
-      },
-    };
+    if (!raw) return null;
+    return JSON.parse(raw);
   } catch {
-    return structuredClone(defaultState);
+    return null;
   }
 }
 
-function persist() {
+async function persist() {
+  state.meta.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  try {
+    await writeToIndexedDB(state);
+    persistenceInfo = "Salvato su IndexedDB + localStorage.";
+  } catch {
+    persistenceInfo = "Salvato su localStorage (IndexedDB non disponibile).";
+  }
+}
+
+function buildPersistenceStatus() {
+  const updatedAt = state?.meta?.updatedAt;
+  if (!updatedAt) return `${persistenceInfo} Ultimo backup: mai.`;
+
+  return `${persistenceInfo} Ultimo salvataggio: ${new Intl.DateTimeFormat("it-IT", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(updatedAt))}.`;
+}
+
+function exportBackup() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    app: "cigarette-counter",
+    version: 1,
+    data: state,
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const fileName = `cigarette-backup-${new Date().toISOString().slice(0, 10)}.json`;
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+async function importBackup(event) {
+  const [file] = event.target.files ?? [];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const candidate = parsed?.data ?? parsed;
+    state = sanitizeState(candidate);
+    hydrateSettingsInputs();
+    await persist();
+    render();
+  } catch {
+    persistenceInfo = "Backup non valido: impossibile importare il file selezionato.";
+    render();
+  } finally {
+    elements.backupFileInput.value = "";
+  }
+}
+
+function sanitizeState(raw) {
+  return {
+    entries: Array.isArray(raw?.entries)
+      ? raw.entries.filter((entry) => !Number.isNaN(new Date(entry).getTime()))
+      : [],
+    settings: {
+      packCost: Math.max(0, toNumber(raw?.settings?.packCost, defaultState.settings.packCost)),
+      packSize: Math.max(1, Math.round(toNumber(raw?.settings?.packSize, defaultState.settings.packSize))),
+      dailyGoal: Math.max(0, Math.round(toNumber(raw?.settings?.dailyGoal, defaultState.settings.dailyGoal))),
+    },
+    meta: {
+      updatedAt: raw?.meta?.updatedAt ?? null,
+    },
+  };
 }
 
 function toNumber(value, fallback) {
@@ -173,4 +275,60 @@ function euro(value) {
     style: "currency",
     currency: "EUR",
   }).format(value);
+}
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("IndexedDB non supportato"));
+      return;
+    }
+
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(DB_STORE)) {
+        db.createObjectStore(DB_STORE, { keyPath: "id" });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Errore apertura IndexedDB"));
+  });
+}
+
+async function readFromIndexedDB() {
+  try {
+    const db = await openDB();
+
+    const result = await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, "readonly");
+      const store = tx.objectStore(DB_STORE);
+      const request = store.get(DB_RECORD_ID);
+
+      request.onsuccess = () => resolve(request.result?.payload ?? null);
+      request.onerror = () => reject(request.error || new Error("Errore lettura IndexedDB"));
+    });
+
+    db.close();
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+async function writeToIndexedDB(payload) {
+  const db = await openDB();
+
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, "readwrite");
+    const store = tx.objectStore(DB_STORE);
+    store.put({ id: DB_RECORD_ID, payload });
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error("Errore scrittura IndexedDB"));
+  });
+
+  db.close();
 }

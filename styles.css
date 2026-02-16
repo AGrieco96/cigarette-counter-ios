@@ -48,7 +48,8 @@ header p {
 
 .controls,
 .settings,
-.timeline {
+.timeline,
+.backup {
   margin-bottom: 1rem;
 }
 
@@ -82,6 +83,11 @@ header p {
 .hint {
   color: #5a667c;
   font-size: 0.9rem;
+}
+
+.status {
+  color: #24345a;
+  font-size: 0.88rem;
 }
 
 .grid {
