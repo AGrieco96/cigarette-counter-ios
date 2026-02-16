@@ -29,7 +29,7 @@ export function SignupPage() {
       <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
         <Input placeholder="Email" {...register('email')} />
         <Input type="password" placeholder="Password" {...register('password')} />
-        <Button className="w-full" disabled={isSubmitting}>Sign up</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>Sign up</Button>
       </form>
       <Link className="text-sm" to="/auth/login">Hai già un account? Login</Link>
     </Card>
