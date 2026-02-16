@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contatore Sigarette</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>🚭 Contatore Sigarette</h1>
+        <p>Tieni traccia delle sigarette fumate e osserva i tuoi progressi.</p>
+      </header>
+
+      <section class="card controls">
+        <h2>Aggiungi fumata</h2>
+        <div class="actions">
+          <button id="add-cigarette" class="btn primary">+ Ho fumato una sigaretta</button>
+          <button id="undo-cigarette" class="btn" title="Annulla ultima registrazione">Annulla ultima</button>
+        </div>
+        <p class="hint">Le registrazioni vengono salvate solo nel browser (localStorage).</p>
+      </section>
+
+      <section class="card settings">
+        <h2>Impostazioni</h2>
+        <div class="grid">
+          <label>
+            Costo pacchetto (€)
+            <input id="pack-cost" type="number" min="0" step="0.01" />
+          </label>
+          <label>
+            Sigarette per pacchetto
+            <input id="pack-size" type="number" min="1" step="1" />
+          </label>
+          <label>
+            Obiettivo giornaliero
+            <input id="daily-goal" type="number" min="0" step="1" />
+          </label>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-live="polite">
+        <article class="card stat">
+          <h3>Oggi</h3>
+          <p id="today-count" class="value">0</p>
+        </article>
+        <article class="card stat">
+          <h3>Totale</h3>
+          <p id="total-count" class="value">0</p>
+        </article>
+        <article class="card stat">
+          <h3>Media giornaliera (7g)</h3>
+          <p id="avg-week" class="value">0</p>
+        </article>
+        <article class="card stat">
+          <h3>Stima spesa totale</h3>
+          <p id="total-cost" class="value">€0,00</p>
+        </article>
+        <article class="card stat">
+          <h3>Stima spesa mese</h3>
+          <p id="month-cost" class="value">€0,00</p>
+        </article>
+        <article class="card stat">
+          <h3>Giorni sotto obiettivo (30g)</h3>
+          <p id="goal-days" class="value">0</p>
+        </article>
+      </section>
+
+      <section class="card timeline">
+        <h2>Ultime registrazioni</h2>
+        <ul id="recent-list"></ul>
+      </section>
+    </main>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
