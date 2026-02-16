@@ -1,8 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { fileURLToPath } from 'node:url';
 
-const outDir = path.resolve(process.cwd(), 'public/icons');
+const scriptFilePath = fileURLToPath(import.meta.url);
+const scriptDir = path.dirname(scriptFilePath);
+const projectRoot = path.resolve(scriptDir, '..');
+const outDir = path.resolve(projectRoot, 'public/icons');
+
+console.info('[icons] Path diagnostics:', {
+  cwd: process.cwd(),
+  scriptFilePath,
+  scriptDir,
+  projectRoot,
+  outDir
+});
+
 fs.mkdirSync(outDir, { recursive: true });
 
 function crc32(buf) {
@@ -143,8 +156,10 @@ const icons = [
 ];
 
 for (const icon of icons) {
+  const outputPath = path.join(outDir, icon.name);
+  console.info('[icons] Generating icon:', { ...icon, outputPath });
   const pixels = drawIcon(icon.size, icon.maskable);
-  writePng(path.join(outDir, icon.name), icon.size, icon.size, pixels);
+  writePng(outputPath, icon.size, icon.size, pixels);
 }
 
-console.log(`Generated ${icons.length} PNG icons in ${outDir}`);
+console.log(`[icons] Generated ${icons.length} PNG icons in ${outDir}`);
