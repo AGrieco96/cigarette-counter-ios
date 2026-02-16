@@ -15,7 +15,7 @@ App web mobile-first per contare sigarette con auth Supabase e insight statistic
    2. `supabase/rls.sql`
 3. In Authentication > URL Configuration imposta redirect URL per reset password:
    - `http://localhost:5173/auth/reset`
-   - `https://<username>.github.io/smoke-counter/auth/reset`
+   - `https://<username>.github.io/<repo>/auth/reset`
 
 ## Setup frontend
 
@@ -30,8 +30,8 @@ npm run dev
 
 ## GitHub Pages deploy
 
-Il progetto usa `base: '/smoke-counter/'` in `web/vite.config.ts`.
-Se cambi nome repository, aggiorna `base`, `scope` e `start_url` nello stesso file.
+Il progetto calcola automaticamente il `base` per GitHub Pages (usando `GITHUB_REPOSITORY` in CI), con fallback a `/` in locale.
+Puoi forzarlo con `VITE_BASE_PATH` se vuoi un path custom.
 
 1. In GitHub repository settings:
    - Pages -> Source: **GitHub Actions**.
