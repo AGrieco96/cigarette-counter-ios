@@ -27,7 +27,7 @@ export function LoginPage() {
         <Input placeholder="Email" {...register('email')} />
         {errors.email && <p className="text-xs text-red-500">Email non valida</p>}
         <Input type="password" placeholder="Password" {...register('password')} />
-        <Button className="w-full" disabled={isSubmitting}>Login</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>Login</Button>
       </form>
       <div className="flex justify-between text-sm">
         <Link to="/auth/signup">Crea account</Link>
