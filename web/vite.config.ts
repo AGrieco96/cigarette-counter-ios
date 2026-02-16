@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 
-const basePath = '/smoke-counter/';
+const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1];
+const basePath = process.env.VITE_BASE_PATH ?? (repoName ? `/${repoName}/` : '/');
 
 export default defineConfig({
   base: basePath,
@@ -22,10 +23,10 @@ export default defineConfig({
         scope: basePath,
         start_url: basePath,
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: `${basePath}icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
+          { src: `${basePath}icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
           {
-            src: '/icons/maskable-512.png',
+            src: `${basePath}icons/maskable-512.png`,
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
