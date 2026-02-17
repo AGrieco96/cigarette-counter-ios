@@ -14,8 +14,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 const normalizedSupabaseUrl = normalizeSupabaseProjectUrl(supabaseUrl);
 
-if (import.meta.env.DEV) {
-  console.debug('[auth] Supabase URL (normalized):', normalizedSupabaseUrl);
-}
-
 export const supabase = createClient(normalizedSupabaseUrl, supabaseAnonKey);

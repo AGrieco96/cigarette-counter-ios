@@ -49,14 +49,14 @@ export function StatsPage() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        {[['Oggi', today], ['Avg 7 giorni', avg7.toFixed(1)], ['Totale 30 giorni', total30], ['Streak sotto target', streak]].map(([label, value]) => (
+        {[['Today', today], ['7-day avg', avg7.toFixed(1)], ['Total 30 days', total30], ['Streak under goal', streak]].map(([label, value]) => (
           <motion.div key={String(label)} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <Card><p className="text-xs text-muted-foreground">{label}</p><p className="text-2xl font-semibold">{value}</p></Card>
           </motion.div>
         ))}
       </div>
       <Card>
-        <p className="mb-2 text-sm font-medium">Trend 14 giorni</p>
+        <p className="mb-2 text-sm font-medium">14-day trend</p>
         <div className="h-52">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>

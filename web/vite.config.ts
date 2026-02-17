@@ -3,8 +3,16 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 
+function normalizeBasePath(rawPath: string | undefined): string {
+  if (!rawPath || rawPath.trim() === '') return '/';
+
+  const withLeadingSlash = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+}
+
 const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1];
-const basePath = process.env.VITE_BASE_PATH ?? (repoName ? `/${repoName}/` : '/');
+const rawBasePath = process.env.VITE_BASE_PATH ?? (repoName ? `/${repoName}/` : '/');
+const basePath = normalizeBasePath(rawBasePath);
 
 export default defineConfig({
   base: basePath,

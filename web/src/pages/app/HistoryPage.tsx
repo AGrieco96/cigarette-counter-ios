@@ -37,12 +37,12 @@ export function HistoryPage() {
   const remove = async (id: string) => {
     const { error } = await supabase.from('smoke_events').delete().eq('id', id);
     if (error) return toast.error(error.message);
-    toast.success('Evento eliminato');
+    toast.success('Event deleted');
     fetchEvents();
   };
 
   if (loading) return <Skeleton className="h-64" />;
-  if (!grouped.length) return <Card>Nessun evento registrato.</Card>;
+  if (!grouped.length) return <Card>No events recorded yet.</Card>;
 
   return (
     <div className="space-y-3">
@@ -50,7 +50,7 @@ export function HistoryPage() {
         <Card key={day} className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="font-semibold">{formatDay(day)}</p>
-            <p className="text-sm text-muted-foreground">Totale {dayEvents.reduce((s, e) => s + e.count, 0)}</p>
+            <p className="text-sm text-muted-foreground">Total {dayEvents.reduce((s, e) => s + e.count, 0)}</p>
           </div>
           {dayEvents.map((e) => (
             <div key={e.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-2 text-sm">

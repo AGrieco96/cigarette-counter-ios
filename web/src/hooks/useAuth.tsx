@@ -19,7 +19,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => data.subscription.unsubscribe();
+    return () => {
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;

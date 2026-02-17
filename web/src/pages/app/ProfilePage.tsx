@@ -28,12 +28,12 @@ export function ProfilePage() {
   const save = async (values: z.infer<typeof schema>) => {
     const { error } = await supabase.from('profiles').update(values).eq('id', user?.id);
     if (error) return toast.error(error.message);
-    toast.success('Profilo aggiornato');
+    toast.success('Profile updated');
   };
 
   const logout = async () => {
     await supabase.auth.signOut();
-    toast.success('Logout effettuato');
+    toast.success('Logged out successfully');
   };
 
   if (isLoading) return <Skeleton className="h-60" />;
@@ -47,7 +47,7 @@ export function ProfilePage() {
       <form className="space-y-3" onSubmit={handleSubmit(save)}>
         <Input placeholder="Display name" {...register('display_name')} />
         <Input type="number" min={0} placeholder="Daily goal" {...register('daily_goal')} />
-        <Button type="submit" className="w-full" disabled={isSubmitting}>Salva</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>Save changes</Button>
       </form>
       <Button className="w-full bg-muted text-foreground" onClick={logout}>Logout</Button>
     </Card>

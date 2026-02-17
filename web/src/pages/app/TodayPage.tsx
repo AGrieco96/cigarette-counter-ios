@@ -42,7 +42,7 @@ export function TodayPage() {
       .from('smoke_events')
       .insert({ user_id: user.id, smoked_at: new Date().toISOString(), count: 1 });
     if (error) return toast.error(error.message);
-    toast.success('Sigaretta aggiunta');
+    toast.success('Cigarette added');
     fetchToday();
   };
 
@@ -51,7 +51,7 @@ export function TodayPage() {
     if (!last) return;
     const { error } = await supabase.from('smoke_events').delete().eq('id', last.id);
     if (error) return toast.error(error.message);
-    toast.success('Ultimo evento rimosso');
+    toast.success('Last event removed');
     fetchToday();
   };
 
@@ -60,7 +60,7 @@ export function TodayPage() {
   return (
     <div className="space-y-4">
       <Card className="space-y-4 text-center">
-        <p className="text-sm text-muted-foreground">Oggi</p>
+        <p className="text-sm text-muted-foreground">Today</p>
         <p className="text-5xl font-bold">{total}</p>
         <motion.div whileTap={{ scale: 0.95 }}>
           <Button className="h-20 w-20 rounded-full text-3xl" onClick={addOne}>+1</Button>
@@ -74,7 +74,7 @@ export function TodayPage() {
             <div className="h-2 rounded-full bg-primary" style={{ width: `${progress}%` }} />
           </div>
         </div>
-        <Button className="w-full bg-muted text-foreground" onClick={undo}>Undo ultimo evento</Button>
+        <Button className="w-full bg-muted text-foreground" onClick={undo}>Undo last event</Button>
       </Card>
     </div>
   );

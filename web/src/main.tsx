@@ -6,6 +6,13 @@ import App from './App';
 import './index.css';
 import { AuthProvider } from './hooks/useAuth';
 
+function getRouterBasename(baseUrl: string): string {
+  if (!baseUrl || baseUrl === '/') return '/';
+  return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+}
+
+const routerBasename = getRouterBasename(import.meta.env.BASE_URL);
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     registrations.forEach((registration) => {
@@ -17,7 +24,7 @@ if ('serviceWorker' in navigator) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AuthProvider>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <BrowserRouter basename={routerBasename}>
         <App />
       </BrowserRouter>
       <Toaster richColors position="top-center" />
